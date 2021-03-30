@@ -13,7 +13,11 @@
 // limitations under the License.
 package icd10_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/iz4vve/go-icd10"
+)
 
 func TestNineToTen(t *testing.T) {
 
@@ -23,6 +27,14 @@ func TestTenToNine(t *testing.T) {
 
 }
 
-func BenchmarkNineToTen(b *testing.B) {}
+func BenchmarkNineToTen(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		icd10.NineToTen([]string{"010", "011"})
+	}
+}
 
-func BenchmarkTenToNine(b *testing.B) {}
+func BenchmarkTenToNine(b *testing.B) { // run the Fib function b.N times
+	for n := 0; n < b.N; n++ {
+		icd10.TenToNine([]string{"A10", "A99"})
+	}
+}
