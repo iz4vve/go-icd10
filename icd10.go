@@ -18,6 +18,7 @@ package icd10
 import (
 	"fmt"
 	"io/ioutil"
+	"strconv"
 	"strings"
 )
 
@@ -67,7 +68,7 @@ func TenToNine(codes []string) ([]string, error) {
 	return ret, nil
 }
 
-// setup reaads the conversion charts and returns them in a way that is easy to serve.
+// setup reads the conversion charts and returns them in a way that is easy to serve.
 func setup() (map[string]string, map[string]string, error) {
 	nine2ten := map[string]string{}
 	ten2nine := map[string]string{}
@@ -98,4 +99,81 @@ func setup() (map[string]string, map[string]string, error) {
 		ten2nine[fields[0]] = fields[1]
 	}
 	return nine2ten, ten2nine, err
+}
+
+// icd_nine,icd_pcs,approximate,no map,combination,scenario,choice list
+func setupPCS() (map[string]PCS, error) {
+	ret := map[string]PCS{}
+
+	pcs, err := ioutil.ReadFile("./resources/pcs.csv")
+	if err != nil {
+		return ret, err
+	}
+
+	for idx, line := range strings.Split(string(pcs), "\n") {
+		if idx == 0 {
+			continue // header
+		}
+		fields := strings.Split(line, ",")
+		if len(fields) < 7 {
+			continue
+		}
+
+		approximate, err := strconv.Atoi(fields[2])
+		if err != nil {
+			return ret, err
+		}
+		appr := false
+		if approximate == 1 {
+			appr = true
+		}
+
+		noMap, err := strconv.Atoi(fields[3])
+		if err != nil {
+			return ret, err
+		}
+		nm := false
+		if noMap == 1 {
+			nm = true
+		}
+
+		combination, err := strconv.Atoi(fields[4])
+		if err != nil {
+			return ret, err
+		}
+
+		scenario, err := strconv.Atoi(fields[5])
+		if err != nil {
+			return ret, err
+		}
+
+		choiceList, err := strconv.Atoi(fields[6])
+		if err != nil {
+			return ret, err
+		}
+
+		pcs := PCS{
+			ICD9:        fields[0],
+			ICD10:       fields[1],
+			Approximate: appr,
+			NoMap:       nm,
+			Combination: combination,
+			Scenario:    scenario,
+			ChoiceList:  choiceList,
+		}
+
+		ret[fields[0]] = pcs
+	}
+
+	return ret, nil
+}
+
+type PCS struct {
+	ICD9        string
+	ICD10       string
+	Approximate bool
+	NoMap       bool
+	Combination int
+	Scenario    int
+	ChoiceList  int
 }
